@@ -206,3 +206,30 @@ print_r($hash);
 
 Solution
 --------
+?php
+$password = "Password123";
+ 
+$hash = password_hash($password, null);
+
+$validation = password_verify($password, $hash);
+ 
+print_r($hash);
+print_r("\n");
+print_r("\n");
+print_r($validation);
+print_r("\n");
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+* Conclusion
+------------
+In the previous exercises, we saw several aspects of cryptographic failures, as well as some of the standards and expectations set out by the security community and governing bodies.
+
+Leveraging hashing algorithms is a great step towards a more secure system, the individual functions chosen have an important impact on the security of a system. Failure to use 
+cryptographically secure algorithms only works to delay a successful attack. By using a secure algorithm with salts, attackers are less likely to be successful in a useful amount of time.
+
+Not only that but by using built-in functionality, we can ensure we don’t unintentionally expose our data to unintended risk.
+
+Finally, we saw how important it is to identify sensitive data properly. If we fail to encrypt crucial data, it can not only impact an organization from a security perspective but also 
+have potential legal ramifications, especially in cases where governing standards are in place.
+
