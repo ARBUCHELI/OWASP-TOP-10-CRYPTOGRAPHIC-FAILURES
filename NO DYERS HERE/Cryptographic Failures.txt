@@ -139,3 +139,70 @@ INSERT INTO `card_number` (`UID`, `Card_number`, `User_UID`) VALUES
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+* Remediating Cryptographic Failures
+------------------------------------
+From our review, we’ve identified two potential cryptographic issues.
+
+The first is the use of a potentially insecure cryptographic algorithm, and the second is a lack of cryptographic controls around critical data. Let’s address the first issue, how 
+password hashes are being generated and stored.
+
+Earlier, we determined two main issues surrounding how user’s passwords were stored. Firstly, the application failed to use a “secure” algorithm. Secondly, the application failed to 
+implement any salting to the application.
+
+When we look at these two problems, there are several solutions. One solution, in particular, is using a better hashing algorithm. By using a “secure” hashing algorithm, such as those 
+mentioned by OWASP we can significantly slow attacks targeted around brute-forcing any stolen hashes. But even if we use a secure hash without salts, some hashes may be trivial to crack 
+due to attacks like dictionary attacks or using rainbow tables. To reduce the risk associated with these types of attacks, we can use salts to add additional randomness to hashes. While 
+there are many ways we can add salts, its best to avoid manually coding any cryptographic functionality. Cryptography is incredibly complex and easy to get wrong. To ensure we don’t 
+accidentally create a less secure hashing method, it’s best to use built-in functions. While they will vary from language to language, PHP supports several built-in functions to securely 
+aid in the securely hashing and salting of sensitive data. Details are available here.
+
+Let’s compare the password_hash() function to the md5() for this exercise.
+
+* Instructions
+--------------
+The code below is designed to apply the MD5 hashing algorithm to the variable.
+
+<?php
+$password = "Password123";
+
+$hash = md5($password);
+
+print_r($hash);
+
+If we execute the code by navigating to the bash and inserting php code.php, we can see the output hash of 42f749ade7f9e195bf475f37a44cafcb. Taking the output hash and providing it to any 
+online or offline brute-forcer will lead to a near-instant crack.
+
+However, replacing the MD5($password) method with the password_hash($password, null) function call leads to a considerably more secure hash.
+
+	Try it:
+	$hash = password_hash($password, null);
+
+Not only does this function now use a more secure hashing algorithm (BCRYPT), but it also automatically securely implements salting! This salting is further observable if you run the code 
+several times. Despite using the same password, the resulting hash is different every time!
+
+By storing these hashes and using the password_verify() function to validate the hashes, we can easily implement a more secure registration and login functionality.
+
+	Try it:
+	password_verify($password,$hash);
+	(Return 1 if true, nothing if false)
+
+Now that we’ve fully covered how to store our password hashes, let’s briefly discuss how to handle credit card information. Depending on the business needs, storing credit card information
+ may not be the best path forward.
+
+Organizations must comply with various standards, including the payment card industry (PCI), when keeping credit card information. If, for whatever reason, an institution decides to store 
+this data, developers should ensure that the data is properly encrypted and protected. Failure to comply with such standards could have serious legal ramifications, not just the security 
+impact. For example, failure to comply with PCI can lead to fines of up to $500,000.
+
+Given how detailed and complex standards such as PCI are, we won’t have time to cover them in this lesson. To learn more about these standards, refer to their official site.
+
+code.php
+--------
+<?php
+$password = "Password123";
+ 
+$hash = md5($password);
+ 
+print_r($hash);
+
+Solution
+--------
