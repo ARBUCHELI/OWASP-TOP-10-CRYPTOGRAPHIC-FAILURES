@@ -17,3 +17,125 @@ In the following example, we’ll see what can happen if developers fail to impl
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+* Identifying Cryptographic Failures
+------------------------------------
+In the following example, we’ll review several code snippets, as well as a test database export, to determine if an application has any Cryptographic Failures that need to be addressed. 
+While this is only a test database export, the data within the database export matches the format and type of data which would be present.
+
+* Instructions
+--------------
+To view the database export, we can run the following command.
+
+	cat export.sql
+
+We can see two tables (users and card_number) and two entries within each table.
+
+The first table is the users table. This table has four fields (UID, Username, Password_MDHash, and LastVisit ) and appears to hold information related to registered users.
+
+Let’s look at the two INSERT statements to see how this data is formatted.
+
+Reviewing the Password_MDHash, we can see two hashes (5f4dcc3b5aa765d61d8327deb882cf99 and 06bf3b78441d8642bb0607c993dc4a12) which have been added to the database. While we can’t see 
+exactly which hash algorithm is being used here, we can review the PHP code which is used to insert new users into the database.
+
+The PHP code which is used to insert new users into the database is as follows:
+
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "customer_db";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+// Check connection
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+$username = $_POST['username'];
+$password_hash = md5($_POST['password']);
+$sql = "INSERT INTO MyGuests (Username, Password_MDHash)
+VALUES ($username,$password)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "New usercreated successfully";
+} else {
+  echo "Error: " . $sql . "<br>" . $conn->error;
+}
+
+$conn->close();
+
+Reviewing this code, it is apparent that the application is using MD5 to hash the string. A quick review of MD5 has found that it is generally discouraged, as weak passwords can be 
+cracked. Additionally, the application failed to use any salting within this hash!
+
+These two factors combined create a serious potential risk for users. By using a weak hashing function and failing to add any unique salts to the hash, the application certainly suffers 
+from a Cryptographic Failure.
+
+Another important consideration when looking at Cryptographic Failures is considering where cryptography should be used.
+
+Let’s look at the next table, the card_number table.
+
+Looking at this table and the two related INSERT statements for card_number, we can see that the application stores credit card numbers in plain text! This is also a significant 
+cryptographic failure and is against PCI compliance regulations.
+
+It’s important to remember. When we discuss Cryptographic Failures, we also need to consider what is being encrypted/secured and not just how.
+
+In the following exercise, we’ll look at how we can revise this code to reduce the risk of Cryptographic Failures.
+
+bash
+----
+$ cat export.sql
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- http://www.phpmyadmin.net
+--
+-- Host: localhost
+-- Generated time:
+-- Server version: 8.0.32
+-- PHP version: 8.1.12
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+
+
+CREATE TABLE IF NOT EXISTS `user` (
+  `UID` int NOT NULL AUTO_INCREMENT,
+  `Username` text,
+  `Password_MDHash` text,
+  `LastVisit` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+
+CREATE TABLE IF NOT EXISTS `card_number` (
+  `UID` int NOT NULL AUTO_INCREMENT,
+  `Card_number` text,
+  `User_UID` text
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+
+INSERT INTO `users` (`UID`, `Username`, `Password_MDHash`, `LastVisit`) VALUES
+('1',user1', '5f4dcc3b5aa765d61d8327deb882cf99');
+
+INSERT INTO `users` (`UID`, `Username`, `Password_MDHash`, `LastVisit`) VALUES
+('2', user2', '06bf3b78441d8642bb0607c993dc4a12');
+
+INSERT INTO `card_number` (`UID`, `Card_number`, `User_UID`) VALUES
+('1', 4012888888881881', '1');
+
+INSERT INTO `card_number` (`UID`, `Card_number`, `User_UID`) VALUES
+('2', '378282246310005', '2');
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
