@@ -1,0 +1,19 @@
+# CRYPTOGRAPHIC FAILURES
+------------------------
+
+* Introduction
+--------------
+Cryptographic Failures are a broad, wide-ranging class of vulnerabilities that relate to any instance where cryptography is used poorly, incorrectly, or not at all. While we don’t need to 
+encrypt everything, it’s important that a user’s private sessions and data are protected in such a way that unauthorized users cannot access them.
+
+Generally, this entails leveraging secure channels to transmit data (i.e., HTTPS instead of HTTP) and hashing/encrypting sensitive information at rest, all while leveraging best practices 
+related to cryptography.
+
+In many cases, this means we should use cryptographically secure functions (avoid deprecated or weak ciphers), ensure we are using secure keys when encrypting data (avoid using default or 
+easily guessable credentials), ensure we are taking steps to protect hashed data (i.e., adding Salt to hashed data), and properly classifying data for the appropriate level of security 
+(i.e., protecting sensitive information such as passwords).
+
+In the following example, we’ll see what can happen if developers fail to implement proper cryptography by reviewing several code snippets and a sample database.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
